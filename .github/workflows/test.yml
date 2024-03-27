@@ -14,9 +14,9 @@ jobs:
         with:
           go-version: '1.21'
 
-      - name: Install typecheck
+      - name: Install composite
         run: |
-          go install github.com/kubecub/typecheck@latest
+          go install github.com/kubecub/composite@latest
 
-      - name: Run typecheck Detector
-        run: typecheck
+      - name: Run composite Detector
+        run: composite
