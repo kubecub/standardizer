@@ -1,0 +1,29 @@
+name: 'Conformity Checker for Project'
+description: 'composite action for conformity checker for project'
+author: 'cubxxw'
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.21'
+
+    - name: Install standardizer
+      run: go install github.com/kubecub/standardizer@latest
+      shell: bash
+
+    - name: Run standardizer Detector
+      run: standardizer
+      shell: bash
+
+branding:
+  icon: 'check-square'
+  color: 'blue'
+
+
+# homepage: 'http://github.com/kubecub'
+# repository: 'http://github.com/kubecub/standardizer'

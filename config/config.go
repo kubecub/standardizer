@@ -3,7 +3,6 @@ package config
 import (
 	"os"
 
-	"github.com/openimsdk/open-im-server/tools/codescan/config"
 	"gopkg.in/yaml.v2"
 )
 
@@ -40,7 +39,6 @@ type Issue struct {
 }
 
 type Checker struct {
-	Config  *config.Config
 	Summary struct {
 		CheckedDirectories int
 		CheckedFiles       int

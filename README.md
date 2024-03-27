@@ -6,7 +6,7 @@ An Github Actions Tools, Development of a Go-Based Conformity Checker for Projec
 
 #### Project Name
 
-- `GoConformityChecker`
+- `GoConcomposite`
 
 #### Functionality Description
 
@@ -54,7 +54,7 @@ package main
 import (
     "flag"
     "fmt"
-    "GoConformityChecker/checker"
+    "GoConcomposite/checker"
 )
 
 func main() {

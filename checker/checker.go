@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/openimsdk/open-im-server/tools/formitychecker/config"
+	"github.com/kubecub/standardizer/config"
 )
 
 type Issue struct {

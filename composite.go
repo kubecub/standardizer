@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/openimsdk/open-im-server/tools/formitychecker/checker"
-	"github.com/openimsdk/open-im-server/tools/formitychecker/config"
+	"github.com/kubecub/standardizer/checker"
+	"github.com/kubecub/standardizer/config"
 )
 
 func main() {
@@ -21,8 +21,8 @@ func main() {
 
 	if configPath == "" {
 		configPath = "config.yaml"
-		if _, err := os.Stat(".github/formitychecker.yaml"); err == nil {
-			configPath = ".github/formitychecker.yaml"
+		if _, err := os.Stat(".github/composite.yaml"); err == nil {
+			configPath = ".github/composite.yaml"
 		}
 	}
 
