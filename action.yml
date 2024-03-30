@@ -2,7 +2,7 @@ name: 'Conformity Checker for Project'
 description: 'standardizer action for conformity checker for project'
 author: 'cubxxw'
 runs:
-  using: 'standardizer'
+  using: 'composite'
   steps:
     - name: Checkout Repository
       uses: actions/checkout@v4
