@@ -1,8 +1,10 @@
 package checker
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/kubecub/standardizer/config"
@@ -24,7 +26,24 @@ type Checker struct {
 }
 
 func (c *Checker) Check() error {
-	return filepath.Walk(c.Config.BaseConfig.SearchDirectory, c.checkPath)
+	err := filepath.Walk(c.Config.BaseConfig.SearchDirectory, c.checkPath)
+	if err != nil {
+		return err
+	}
+
+	if len(c.Summary.Issues) > 0 {
+		c.printIssues()
+		return fmt.Errorf("found %d issues in the codebase", len(c.Summary.Issues))
+	}
+	return nil
+}
+
+func (c *Checker) printIssues() {
+	fmt.Println("## Issues found:")
+	fmt.Println("===================================================================================================")
+	for _, issue := range c.Summary.Issues {
+		fmt.Printf("Type: %s, Path: %s, Message: %s\n", issue.Type, issue.Path, issue.Message)
+	}
 }
 
 func (c *Checker) checkPath(path string, info os.FileInfo, err error) error {
@@ -42,15 +61,10 @@ func (c *Checker) checkPath(path string, info os.FileInfo, err error) error {
 	}
 
 	if info.IsDir() {
-		c.Summary.CheckedDirectories++
 		if c.isIgnoredDirectory(relativePath) {
-			c.Summary.Issues = append(c.Summary.Issues, Issue{
-				Type:    "ignoredDirectory",
-				Path:    path,
-				Message: "This directory has been ignored",
-			})
 			return filepath.SkipDir
 		}
+		c.Summary.CheckedDirectories++
 		if !c.checkDirectoryName(relativePath) {
 			c.Summary.Issues = append(c.Summary.Issues, Issue{
 				Type:    "directoryNaming",
@@ -77,7 +91,7 @@ func (c *Checker) checkPath(path string, info os.FileInfo, err error) error {
 
 func (c *Checker) isIgnoredDirectory(path string) bool {
 	for _, ignoredDir := range c.Config.IgnoreDirectories {
-		if strings.Contains(path, ignoredDir) {
+		if strings.HasSuffix(path, ignoredDir) || strings.Contains(path, ignoredDir+"/") {
 			return true
 		}
 	}
@@ -85,9 +99,13 @@ func (c *Checker) isIgnoredDirectory(path string) bool {
 }
 
 func (c *Checker) isIgnoredFile(path string) bool {
-	ext := filepath.Ext(path)
 	for _, format := range c.Config.IgnoreFormats {
-		if ext == format {
+		matched, err := regexp.MatchString(format, path)
+		if err != nil {
+			fmt.Printf("Invalid regex pattern: %s, error: %s\n", format, err)
+			continue
+		}
+		if matched {
 			return true
 		}
 	}
@@ -96,21 +114,34 @@ func (c *Checker) isIgnoredFile(path string) bool {
 
 func (c *Checker) checkDirectoryName(path string) bool {
 	dirName := filepath.Base(path)
+	errors := []string{}
+
 	if c.Config.DirectoryNaming.MustBeLowercase && (dirName != strings.ToLower(dirName)) {
-		return false
+		errors = append(errors, "directory name must be lowercase")
 	}
 	if !c.Config.DirectoryNaming.AllowHyphens && strings.Contains(dirName, "-") {
-		return false
+		errors = append(errors, "hyphens are not allowed in directory names")
 	}
 	if !c.Config.DirectoryNaming.AllowUnderscores && strings.Contains(dirName, "_") {
+		errors = append(errors, "underscores are not allowed in directory names")
+	}
+
+	if len(errors) > 0 {
+		c.Summary.Issues = append(c.Summary.Issues, Issue{
+			Type:    "directoryNaming",
+			Path:    path,
+			Message: fmt.Sprintf("Directory naming issues: %s. Example of valid directory name: '%s'", strings.Join(errors, "; "), c.exampleDirectoryName()),
+		})
 		return false
 	}
+
 	return true
 }
 
 func (c *Checker) checkFileName(path string) bool {
 	fileName := filepath.Base(path)
 	ext := filepath.Ext(fileName)
+	errors := []string{}
 
 	allowHyphens := c.Config.FileNaming.AllowHyphens
 	allowUnderscores := c.Config.FileNaming.AllowUnderscores
@@ -123,14 +154,69 @@ func (c *Checker) checkFileName(path string) bool {
 	}
 
 	if mustBeLowercase && (fileName != strings.ToLower(fileName)) {
-		return false
+		errors = append(errors, "file name must be lowercase")
 	}
 	if !allowHyphens && strings.Contains(fileName, "-") {
-		return false
+		errors = append(errors, "hyphens are not allowed in file names")
 	}
 	if !allowUnderscores && strings.Contains(fileName, "_") {
+		errors = append(errors, "underscores are not allowed in file names")
+	}
+
+	if len(errors) > 0 {
+		c.Summary.Issues = append(c.Summary.Issues, Issue{
+			Type:    "fileNaming",
+			Path:    path,
+			Message: fmt.Sprintf("File naming issues: %s. Example of valid file name: '%s'", strings.Join(errors, "; "), c.exampleFileName(ext)),
+		})
 		return false
 	}
 
 	return true
+}
+
+func (c *Checker) exampleDirectoryName() string {
+	exampleName := "ExampleDirectory"
+	if c.Config.DirectoryNaming.MustBeLowercase {
+		exampleName = strings.ToLower(exampleName)
+	}
+	if !c.Config.DirectoryNaming.AllowHyphens && !c.Config.DirectoryNaming.AllowUnderscores {
+		exampleName = strings.ReplaceAll(exampleName, "-", "")
+		exampleName = strings.ReplaceAll(exampleName, "_", "")
+	} else if c.Config.DirectoryNaming.AllowHyphens {
+		exampleName = strings.ReplaceAll(exampleName, "_", "-")
+	} else if c.Config.DirectoryNaming.AllowUnderscores {
+		exampleName = strings.ReplaceAll(exampleName, "-", "_")
+	}
+	return exampleName
+}
+
+func (c *Checker) exampleFileName(ext string) string {
+	baseName := "example_file"
+	if c.Config.FileNaming.MustBeLowercase {
+		baseName = strings.ToLower(baseName)
+	}
+
+	if !c.Config.FileNaming.AllowHyphens && !c.Config.FileNaming.AllowUnderscores {
+		baseName = strings.ReplaceAll(baseName, "-", "")
+		baseName = strings.ReplaceAll(baseName, "_", "")
+	} else if c.Config.FileNaming.AllowHyphens {
+	} else if c.Config.FileNaming.AllowUnderscores {
+		baseName = strings.ReplaceAll(baseName, "-", "_")
+	}
+
+	if specificNaming, ok := c.Config.FileTypeSpecificNaming[ext]; ok {
+		if specificNaming.MustBeLowercase {
+			baseName = strings.ToLower(baseName)
+		}
+		if !specificNaming.AllowHyphens && !specificNaming.AllowUnderscores {
+			baseName = strings.ReplaceAll(baseName, "-", "")
+			baseName = strings.ReplaceAll(baseName, "_", "")
+		} else if specificNaming.AllowHyphens {
+		} else if specificNaming.AllowUnderscores {
+			baseName = strings.ReplaceAll(baseName, "-", "_")
+		}
+	}
+
+	return fmt.Sprintf("%s%s", baseName, ext)
 }

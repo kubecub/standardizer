@@ -14,9 +14,9 @@ jobs:
         with:
           go-version: '1.21'
 
-      - name: Install composite
+      - name: Install standardizer
         run: |
-          go install github.com/kubecub/composite@latest
+          go install github.com/kubecub/standardizer@latest
 
-      - name: Run composite Detector
-        run: composite
+      - name: Run standardizer Detector
+        run: standardizer

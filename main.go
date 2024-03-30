@@ -21,8 +21,8 @@ func main() {
 
 	if configPath == "" {
 		configPath = "config.yaml"
-		if _, err := os.Stat(".github/composite.yaml"); err == nil {
-			configPath = ".github/composite.yaml"
+		if _, err := os.Stat(".github/standardizer.yaml"); err == nil {
+			configPath = ".github/standardizer.yaml"
 		}
 	}
 
@@ -35,17 +35,12 @@ func main() {
 	c := &checker.Checker{Config: cfg}
 	err = c.Check()
 	if err != nil {
-		fmt.Println("Error during check:", err)
+		fmt.Println()
+		fmt.Println("===================================================================================================")
+		fmt.Println("Please check whether the above file conforms to the specification, or check whether the configuration file is qualified")
+		fmt.Println("!!!Error during check:", err)
 		os.Exit(1)
 	}
-
-	// if len(c.Errors) > 0 {
-	// 	fmt.Println("Found errors:")
-	// 	for _, errMsg := range c.Errors {
-	// 		fmt.Println("-", errMsg)
-	// 	}
-	// 	os.Exit(1)
-	// }
 
 	summaryJSON, err := json.MarshalIndent(c.Summary, "", "  ")
 	if err != nil {

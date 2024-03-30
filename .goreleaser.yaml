@@ -19,9 +19,9 @@ report_sizes: true
 dist: _output/dist
 
 builds:
-  - binary: composite
-    id: composite
-    main: ./composite.go
+  - binary: standardizer
+    id: standardizer
+    main: ./standardizer.go
     goos:
       - windows
       - darwin
@@ -85,10 +85,10 @@ archives:
 nfpms:
   - id: packages
     builds:
-      - composite
+      - standardizer
     # Your app's vendor.
     vendor: kubecub
-    homepage: https://github.com/kubecub/composite
+    homepage: https://github.com/kubecub/standardizer
     maintainer: kubbot <https://github.com/kubbot>
     description: |-
       Comment Lang Detector is a tool to detect the language of comments in code files.
@@ -206,7 +206,7 @@ checksum:
 
 release:
   footer: |
-    **Full Changelog**: https://github.com/kubecub/composite/compare/{{ .PreviousTag }}...{{ .Tag }}
+    **Full Changelog**: https://github.com/kubecub/standardizer/compare/{{ .PreviousTag }}...{{ .Tag }}
 
     ## Helping out
 
