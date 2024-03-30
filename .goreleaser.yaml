@@ -21,7 +21,7 @@ dist: _output/dist
 builds:
   - binary: standardizer
     id: standardizer
-    main: ./standardizer.go
+    main: ./main.go
     goos:
       - windows
       - darwin
