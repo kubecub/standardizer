@@ -1,4 +1,4 @@
-name: Type Check
+name: Test Standardizer
 
 on: [push, pull_request]
 
