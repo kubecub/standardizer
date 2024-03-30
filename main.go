@@ -23,6 +23,8 @@ func main() {
 		configPath = "config.yaml"
 		if _, err := os.Stat(".github/standardizer.yaml"); err == nil {
 			configPath = ".github/standardizer.yaml"
+		} else if _, err := os.Stat(".github/standardizer.yml"); err == nil {
+			configPath = ".github/standardizer.yml"
 		}
 	}
 
